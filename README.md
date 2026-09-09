@@ -59,7 +59,7 @@ different folder.
 **Controls are dimmed and mention Premium** — Spotify returned `403`. Playback
 control is a Premium-only API.
 
-**"No record loaded"** — Spotify reports no active device. Play something in
+**"No Record Loaded"** — Spotify reports no active device. Play something in
 the Spotify app, phone, or web player, then reopen the popup.
 
 ## Privacy

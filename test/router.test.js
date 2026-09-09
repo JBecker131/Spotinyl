@@ -280,3 +280,45 @@ test('an unknown message type is rejected', async () => {
   assert.equal(res.ok, false);
   assert.match(res.error.message, /NOPE/);
 });
+
+test('a control action reuses the token the state read just rotated', async () => {
+  const storage = memoryStorage({ clientId: 'cid', tokens: { ...validTokens, expiresAt: -1 } });
+  let refreshes = 0;
+  const fetchImpl = async (url) => {
+    if (url.includes('accounts.spotify.com')) {
+      refreshes += 1;
+      // Spotify rotates the refresh token, so replaying the old one is rejected.
+      return refreshes === 1
+        ? jsonResponse(200, JSON.stringify({ access_token: 'NEW', refresh_token: 'ROTATED', expires_in: 3600 }))
+        : jsonResponse(400, JSON.stringify({ error: 'invalid_grant' }));
+    }
+    return url.endsWith('/me/player') ? jsonResponse(200, JSON.stringify(PLAYBACK)) : jsonResponse(204);
+  };
+  const { router } = build({ storage, fetchImpl });
+  const res = await router.handle({ type: 'TOGGLE_PLAY' });
+  assert.equal(refreshes, 1, 'the freshly rotated token is reused, not refreshed again');
+  assert.equal(res.ok, true);
+  assert.equal(storage.peek().tokens.refreshToken, 'ROTATED');
+});
+
+test('a control action retries once when Spotify returns a transient 5xx', async () => {
+  let commands = 0;
+  const fetchImpl = async (url) => {
+    if (url.endsWith('/me/player')) return jsonResponse(200, JSON.stringify(PLAYBACK));
+    commands += 1;
+    return commands === 1 ? jsonResponse(502, '<html>Bad gateway</html>') : jsonResponse(204);
+  };
+  const { router } = build({ storage: memoryStorage({ clientId: 'cid', tokens: validTokens }), fetchImpl });
+  const res = await router.handle({ type: 'NEXT' });
+  assert.equal(commands, 2, 'the failed command is retried once');
+  assert.equal(res.ok, true, 'a recovered command reports success, not an error');
+});
+
+test('a control action that keeps failing reports the status it got', async () => {
+  const fetchImpl = async (url) =>
+    url.endsWith('/me/player') ? jsonResponse(200, JSON.stringify(PLAYBACK)) : jsonResponse(502, '');
+  const { router } = build({ storage: memoryStorage({ clientId: 'cid', tokens: validTokens }), fetchImpl });
+  const res = await router.handle({ type: 'NEXT' });
+  assert.equal(res.ok, false);
+  assert.match(res.state.message, /502/, 'the message names the status so it can be diagnosed');
+});

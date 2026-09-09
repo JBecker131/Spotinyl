@@ -68,7 +68,14 @@ export function createRouter({ storage, fetchImpl, launchAuthFlow, redirectUri, 
 
   /** Runs a control action, then re-reads playback so the popup gets fresh truth. */
   async function control(config, action) {
-    const { result } = await callApi(config, action);
+    let { result } = await callApi(config, action);
+
+    // Spotify's player endpoints return transient 5xx often enough that a single
+    // failure is not worth reporting: the command usually lands on a second try.
+    if (!result.ok && result.error.status >= 500) {
+      result = (await callApi(await storage.get(), action)).result;
+    }
+
     const after = await storage.get();
     if (!result.ok) {
       const previousTrack = toTrack(await lastPlayback(after));
@@ -135,17 +142,22 @@ export function createRouter({ storage, fetchImpl, launchAuthFlow, redirectUri, 
         if (state.status === STATUS.NEEDS_SETUP || state.status === STATUS.NEEDS_AUTH) {
           return errResponse(state.status, 'Connect Spotinyl to Spotify first.', state);
         }
+        // Re-read storage: the state read above may have refreshed the token, and
+        // Spotify rotates the refresh token when it does. Carrying the stale
+        // config into the command would replay a refresh token Spotify has
+        // already invalidated, failing every button press that lands on expiry.
+        const current = await storage.get();
         if (message.type === 'TOGGLE_PLAY') {
           const action = state.isPlaying ? pause : play;
-          return control(config, (accessToken) => action({ fetchImpl, accessToken }));
+          return control(current, (accessToken) => action({ fetchImpl, accessToken }));
         }
         if (message.type === 'NEXT') {
-          return control(config, (accessToken) => next({ fetchImpl, accessToken }));
+          return control(current, (accessToken) => next({ fetchImpl, accessToken }));
         }
         if (message.type === 'PREV') {
-          return control(config, (accessToken) => previous({ fetchImpl, accessToken }));
+          return control(current, (accessToken) => previous({ fetchImpl, accessToken }));
         }
-        return control(config, (accessToken) =>
+        return control(current, (accessToken) =>
           setVolume({ fetchImpl, accessToken, percent: message.percent }));
       }
 

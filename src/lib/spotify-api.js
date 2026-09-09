@@ -52,20 +52,27 @@ export async function apiRequest({ fetchImpl, accessToken, method, path, query }
   }
 
   if (!response.ok) {
-    let message = MESSAGES.unknown;
+    let detail = '';
     try {
-      message = JSON.parse(text)?.error?.message ?? message;
+      detail = JSON.parse(text)?.error?.message ?? '';
     } catch {
-      // A non-JSON error body is expected from proxies; keep the generic message.
+      // A non-JSON error body is expected from proxies; the status alone will do.
     }
-    return { ok: false, error: { tag: 'unknown', message } };
+    // Name the status: a bare "something went wrong" gives nobody anything to act on.
+    const message = detail
+      ? `Spotify returned ${response.status}: ${detail}`
+      : `Spotify returned ${response.status}.`;
+    return { ok: false, error: { tag: 'unknown', message, status: response.status } };
   }
 
   if (!text) return { ok: true, data: null };
   try {
     return { ok: true, data: JSON.parse(text) };
   } catch {
-    return failure('unknown');
+    return failure('unknown', {
+      message: "Spotify's response could not be read.",
+      status: response.status,
+    });
   }
 }
 

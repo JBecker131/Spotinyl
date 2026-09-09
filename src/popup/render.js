@@ -130,7 +130,7 @@ function titleFor(status) {
   switch (status) {
     case STATUS.NEEDS_SETUP: return 'Setup required';
     case STATUS.NEEDS_AUTH: return 'Not connected';
-    case STATUS.NO_DEVICE: return 'No record loaded';
+    case STATUS.NO_DEVICE: return 'No Record Loaded';
     case STATUS.ERROR: return 'Unavailable';
     default: return 'Nothing playing';
   }
