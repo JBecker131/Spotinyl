@@ -187,7 +187,10 @@ body {
 /* Applied by render.js once the arm has been painted at the current track
    position, so opening the popup does not animate it in from the rest. */
 .tonearm--tracking {
-  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Sized for the visible jump — cueing back to the lead-in on a skip. The
+     per-frame tracking during playback moves far too little for the duration
+     to read either way. */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .tonearm__pivot {
   position: absolute;
