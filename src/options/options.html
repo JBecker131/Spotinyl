@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spotivyn setup</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="page">
+      <h1>Spotivyn setup</h1>
+      <p class="lede">
+        Spotivyn talks to Spotify with your own developer credentials. This is a
+        one-time setup and takes about five minutes.
+      </p>
+
+      <ol class="steps">
+        <li>
+          <h2>Copy your redirect URI</h2>
+          <p>Spotify needs to know where to send you back to. This value is unique to your installation.</p>
+          <div class="copy-row">
+            <input id="redirect" type="text" readonly />
+            <button id="copy" type="button">Copy</button>
+          </div>
+        </li>
+
+        <li>
+          <h2>Create a Spotify app</h2>
+          <p>
+            Open the
+            <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">Spotify developer dashboard</a>,
+            click <strong>Create app</strong>, give it any name, paste the redirect URI above into
+            <strong>Redirect URIs</strong>, tick the <strong>Web API</strong> checkbox, and save.
+          </p>
+        </li>
+
+        <li>
+          <h2>Paste the Client ID</h2>
+          <p>On your new app's settings page, copy the <strong>Client ID</strong> and paste it here. Leave the Client Secret alone — Spotivyn uses PKCE and never needs it.</p>
+          <div class="copy-row">
+            <input id="client-id" type="text" placeholder="e.g. 4f8c1e2b9a7d4c3e8f1a2b3c4d5e6f70" spellcheck="false" />
+            <button id="save" type="button">Save</button>
+          </div>
+        </li>
+
+        <li>
+          <h2>Connect</h2>
+          <p>Authorize Spotivyn to read and control your playback.</p>
+          <div class="actions">
+            <button id="connect" type="button" class="primary">Connect to Spotify</button>
+            <button id="signout" type="button">Sign out</button>
+          </div>
+        </li>
+      </ol>
+
+      <p id="status" class="status" role="status"></p>
+
+      <p class="footnote">
+        Controlling playback requires a Spotify Premium account — Spotify's API refuses
+        play, pause, skip, and volume requests on free accounts. The now-playing display
+        works either way.
+      </p>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
