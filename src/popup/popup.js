@@ -3,12 +3,19 @@ import { STATUS, interpolateProgress } from '../lib/player-state.js';
 
 const POLL_INTERVAL_MS = 4000;
 const VOLUME_DEBOUNCE_MS = 150;
+const ERROR_GRACE_MS = 2000;
+
+// Failures that are worth waiting out. A flaky Spotify command clears itself on
+// the next poll; anything still failing after the grace period is real.
+const HELD_STATUSES = new Set([STATUS.ERROR, STATUS.FORBIDDEN]);
 
 const deck = document.querySelector('.deck');
 
 let state = null;
 let pollTimer = null;
 let volumeTimer = null;
+let pendingFailure = null;
+let graceTimer = null;
 
 function send(message) {
   return chrome.runtime.sendMessage(message).catch((error) => ({
@@ -18,16 +25,48 @@ function send(message) {
   }));
 }
 
+function clearPendingFailure() {
+  pendingFailure = null;
+  clearTimeout(graceTimer);
+  graceTimer = null;
+}
+
+/** Shows a failure that outlived the grace period. */
+function commitPendingFailure() {
+  if (!pendingFailure) return;
+  state = pendingFailure;
+  clearPendingFailure();
+  render(deck, state);
+}
+
 function apply(response) {
-  if (response?.state) {
-    state = response.state;
-    render(deck, state);
-  } else if (response?.error) {
-    // No state came back at all — surface the error without wiping the display.
-    const notice = deck.querySelector('.notice');
-    notice.textContent = response.error.message;
-    notice.hidden = false;
+  // A response with no state at all is still a failure worth holding; carry the
+  // message on the state already showing so the deck does not jump.
+  const next = response?.state
+    ?? (response?.error && state
+      ? { ...state, status: STATUS.ERROR, message: response.error.message }
+      : null);
+  if (!next) return;
+
+  const healthy = !HELD_STATUSES.has(next.status);
+
+  // Nothing on screen yet means there is nothing to protect from a flicker.
+  if (healthy || !state) {
+    clearPendingFailure();
+    state = next;
+    render(deck, next);
+    return;
   }
+
+  // Hold the failure back and leave the deck as it is: the record keeps
+  // spinning and the progress keeps interpolating off the last good state, so a
+  // blip is invisible. Only a failure that persists is worth showing.
+  if (pendingFailure) {
+    pendingFailure = next; // Keep the freshest one to commit.
+    return;
+  }
+  pendingFailure = next;
+  graceTimer = setTimeout(commitPendingFailure, ERROR_GRACE_MS);
 }
 
 async function poll() {
