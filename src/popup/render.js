@@ -26,15 +26,41 @@ function setHidden(element, hidden) {
   else element.removeAttribute('hidden');
 }
 
+/**
+ * Decks whose tonearm has already been placed once.
+ *
+ * The popup opens onto playback that is already underway, so the arm belongs
+ * where the track already is. Animating that first placement would show it
+ * drifting in from the rest every time the popup opens, which is a rendering
+ * artefact rather than something the deck is doing. Suppress the transition
+ * for the first placement only; later changes — a skip cueing the arm back to
+ * the lead-in — still glide.
+ */
+const placedDecks = new WeakSet();
+
+function setArmAngle(root, degrees) {
+  const arm = root.querySelector('.tonearm');
+  arm.style.setProperty('--arm-deg', String(degrees));
+
+  if (placedDecks.has(root)) return;
+  placedDecks.add(root);
+
+  // The glide lives on a class rather than on `.tonearm` itself, so the first
+  // placement paints with no transition at all. Enabling it takes two frames:
+  // the first paints the arm where the track already is, and only then does the
+  // class go on — added any sooner it would land in the same style recalculation
+  // as the angle and animate the arm in from the rest after all.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => arm.classList.add('tonearm--tracking'));
+  });
+}
+
 export function renderProgress(root, { progressMs, durationMs, hasTrack }) {
   const ratio = hasTrack && durationMs > 0 ? Math.min(1, Math.max(0, progressMs / durationMs)) : 0;
   q(root, '.progress__fill').style.width = `${ratio * 100}%`;
   q(root, '.progress__elapsed').textContent = formatTime(hasTrack ? progressMs : 0);
   q(root, '.progress__duration').textContent = formatTime(hasTrack ? durationMs : 0);
-  root.querySelector('.tonearm').style.setProperty(
-    '--arm-deg',
-    String(armAngle({ hasTrack, progressMs, durationMs })),
-  );
+  setArmAngle(root, armAngle({ hasTrack, progressMs, durationMs }));
 }
 
 export function render(root, state) {

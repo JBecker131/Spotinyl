@@ -183,6 +183,10 @@ body {
      clockwise) rotation: a hand at 6 o'clock reaches 9 o'clock clockwise. */
   transform: rotate(calc(var(--arm-deg, 0) * 1deg));
   transform-origin: 50% 9px;
+}
+/* Applied by render.js once the arm has been painted at the current track
+   position, so opening the popup does not animate it in from the rest. */
+.tonearm--tracking {
   transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .tonearm__pivot {
@@ -405,6 +409,6 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .record { animation: none; }
-  .tonearm { transition: none; }
+  .tonearm--tracking { transition: none; }
   .key { transition: none; }
 }
