@@ -5,7 +5,7 @@
   "description": "A turntable-styled Chrome extension for controlling Spotify playback.",
   "type": "module",
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test \"test/*.test.js\"",
     "icons": "node tools/make-icons.js"
   }
 }
