@@ -1,0 +1,410 @@
+:root {
+  --walnut: #4a3120;
+  --walnut-dark: #2a1a10;
+  --plate-light: #c7cbcf;
+  --plate-mid: #9aa0a5;
+  --felt: #14151a;
+  --amber: #e8a33d;
+  --key-face: #e6e8ea;
+  --key-edge: #8f9498;
+  --ink: #23252a;
+  --ink-dim: #6d7278;
+  --paper: #efe7d8;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --condensed: "Helvetica Neue", "Arial Narrow", "Roboto Condensed", var(--sans);
+}
+
+* { box-sizing: border-box; }
+
+/* Several elements below set an explicit `display`, which would otherwise beat
+   the user-agent [hidden] rule. SVG elements never honour [hidden] on their
+   own, so this covers the transport icons too. */
+[hidden] { display: none !important; }
+
+body {
+  width: 360px;
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--paper);
+  background: var(--walnut-dark);
+}
+
+.deck {
+  padding: 12px;
+  background:
+    repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.14) 0 2px, rgba(255, 255, 255, 0.03) 2px 6px),
+    linear-gradient(160deg, var(--walnut), var(--walnut-dark));
+}
+
+/* ---------- top plate: brushed aluminium ---------- */
+
+.plate {
+  position: relative;
+  height: 232px;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(8deg, rgba(255, 255, 255, 0.10) 0 1px, rgba(0, 0, 0, 0.05) 1px 3px),
+    linear-gradient(150deg, var(--plate-light), var(--plate-mid) 62%, #b4b9bd);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.35),
+    0 6px 14px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.badge {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  text-align: right;
+  font-family: var(--condensed);
+  color: #55595e;
+}
+.badge__mark { display: block; font-size: 13px; letter-spacing: 0.22em; font-weight: 700; }
+.badge__model { display: block; font-size: 9px; letter-spacing: 0.3em; color: #7d8288; }
+
+.led {
+  position: absolute;
+  left: 14px;
+  bottom: 16px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6b6f74;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+.deck[data-status="ready"] .led,
+.deck[data-status="forbidden"] .led {
+  background: var(--amber);
+  box-shadow: 0 0 6px 2px rgba(232, 163, 61, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+/* ---------- platter and record ---------- */
+
+.platter {
+  position: absolute;
+  left: 18px;
+  top: 26px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 50%, #1d1e23 0 62%, var(--felt) 62% 100%);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.record {
+  grid-area: 1 / 1;
+  width: 166px;
+  height: 166px;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 3px),
+    radial-gradient(circle at 50% 50%, #17171b 0 30%, #0a0a0c 30% 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  animation: spin 1.8s linear infinite; /* 1.8s per revolution == 33 1/3 rpm */
+  animation-play-state: paused;
+}
+/* Toggling play-state (rather than removing the animation) freezes the record
+   in place, so pausing and resuming does not snap it back to zero. */
+.record[data-spinning="true"] { animation-play-state: running; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.record__art {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 66px;
+  height: 66px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.record__blank {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 66px;
+  height: 66px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fbf7ee, #d9d2c4);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+/* The blank label backs the disc only when there is no artwork to show. Keying
+   this off the artwork rather than off a list of statuses keeps a retained
+   track visible in `error` too. */
+.deck[data-has-art="true"] .record__blank { display: none; }
+
+/* The sheen is a sibling of the record, not a child: light in the room does
+   not rotate with the disc. */
+.record__sheen {
+  grid-area: 1 / 1;
+  width: 166px;
+  height: 166px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(
+    from 210deg,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 255, 255, 0.15) 26deg,
+    rgba(255, 255, 255, 0) 62deg,
+    rgba(255, 255, 255, 0) 182deg,
+    rgba(255, 255, 255, 0.10) 208deg,
+    rgba(255, 255, 255, 0) 244deg
+  );
+}
+
+.spindle {
+  grid-area: 1 / 1;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d5d8dc, #7d8288);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- tonearm ---------- */
+
+.tonearm {
+  position: absolute;
+  right: 34px;
+  top: 22px;
+  width: 12px;
+  height: 199px;
+  /* geometry.js returns a positive swing. The arm pivots at its top right and
+     hangs downward, so swinging it left onto the record is a positive (screen
+     clockwise) rotation: a hand at 6 o'clock reaches 9 o'clock clockwise. */
+  transform: rotate(calc(var(--arm-deg, 0) * 1deg));
+  transform-origin: 50% 9px;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tonearm__pivot {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #eceef0, #8b9095);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.tonearm__shaft {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  width: 5px;
+  height: 163px;
+  transform: translateX(-50%);
+  border-radius: 3px;
+  background: linear-gradient(90deg, #9ca1a6, #e3e6e8 45%, #8b9095);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.tonearm__head {
+  position: absolute;
+  left: 50%;
+  top: 179px;
+  width: 13px;
+  height: 20px;
+  transform: translateX(-50%);
+  border-radius: 2px 2px 4px 4px;
+  background: linear-gradient(#3c3f44, #23262a);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- readout ---------- */
+
+.readout { padding: 12px 2px 10px; }
+.readout__title {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--paper);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.readout__artist {
+  font-size: 12px;
+  color: #c3b49c;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 15px;
+}
+
+.progress { margin-top: 9px; }
+.progress__track {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+.progress__fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #b8842c, var(--amber));
+}
+.progress__times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-family: var(--condensed);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #b1a08a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- controls ---------- */
+
+.controls {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 5px;
+  background: linear-gradient(#3d281a, #2f2013);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), inset 0 -2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.key {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  width: 54px;
+  height: 38px;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #2b2d31;
+  background: linear-gradient(var(--key-face), #c2c6ca);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.14),
+    0 3px 0 var(--key-edge),
+    0 5px 8px rgba(0, 0, 0, 0.45);
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+.key svg { width: 20px; height: 20px; fill: currentColor; }
+.key--primary { width: 62px; }
+
+/* The key physically depresses: it drops by its own shadow height. */
+.key:active:not([disabled]) {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 2px 6px rgba(0, 0, 0, 0.3),
+    0 0 0 var(--key-edge),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.key:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+.key[disabled] { opacity: 0.42; cursor: not-allowed; }
+
+/* ---------- volume fader ---------- */
+
+.fader { display: grid; gap: 3px; padding-left: 4px; }
+.fader__label {
+  font-family: var(--condensed);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  color: #b1a08a;
+}
+.fader__input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 26px;
+  background: transparent;
+  cursor: pointer;
+}
+.fader__input:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
+.fader__input[disabled] { opacity: 0.42; cursor: not-allowed; }
+
+.fader__input::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(#5f6468, #8e9498);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.65), inset 0 -1px 0 rgba(255, 255, 255, 0.22);
+}
+.fader__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 26px;
+  margin-top: -8px;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.26) 0 1px, rgba(255, 255, 255, 0.24) 1px 3px),
+    linear-gradient(#f2f4f6, #b9bec2);
+  box-shadow: 0 2px 0 #7d8286, 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- notice and overlay ---------- */
+
+.notice {
+  margin-top: 9px;
+  padding: 7px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #f0dcbb;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid var(--amber);
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 232px;
+  margin: 12px;
+  border-radius: 6px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 18px;
+  text-align: center;
+  background: rgba(18, 12, 8, 0.9);
+  color: var(--paper);
+}
+.overlay__text { margin: 0; font-size: 13px; line-height: 1.5; max-width: 260px; }
+.overlay__action {
+  appearance: none;
+  border: 0;
+  border-radius: 5px;
+  padding: 9px 18px;
+  font: inherit;
+  font-weight: 650;
+  font-size: 13px;
+  color: #2b2113;
+  cursor: pointer;
+  background: linear-gradient(#f0be6a, var(--amber));
+  box-shadow: 0 3px 0 #9a6a1f, 0 5px 8px rgba(0, 0, 0, 0.45);
+}
+.overlay__action:active { transform: translateY(3px); box-shadow: 0 0 0 #9a6a1f; }
+.overlay__action:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
+
+.deck { position: relative; }
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .record { animation: none; }
+  .tonearm { transition: none; }
+  .key { transition: none; }
+}

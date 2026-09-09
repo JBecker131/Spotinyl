@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spotivyn</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="deck" data-status="needs-setup">
+      <div class="plate">
+        <div class="badge">
+          <span class="badge__mark">SPOTIVYN</span>
+          <span class="badge__model">DD-33</span>
+        </div>
+        <div class="led" aria-hidden="true"></div>
+
+        <div class="platter">
+          <div class="record" data-spinning="false">
+            <div class="record__grooves"></div>
+            <img class="record__art" alt="" hidden />
+            <div class="record__blank"></div>
+          </div>
+          <div class="record__sheen" aria-hidden="true"></div>
+          <div class="spindle" aria-hidden="true"></div>
+        </div>
+
+        <div class="tonearm" style="--arm-deg: 0">
+          <div class="tonearm__pivot"></div>
+          <div class="tonearm__shaft"></div>
+          <div class="tonearm__head"></div>
+        </div>
+      </div>
+
+      <div class="readout" aria-live="polite">
+        <div class="readout__title">Not connected</div>
+        <div class="readout__artist"></div>
+        <div class="progress">
+          <div class="progress__track"><div class="progress__fill"></div></div>
+          <div class="progress__times">
+            <span class="progress__elapsed">0:00</span>
+            <span class="progress__duration">0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="key" data-action="prev" aria-label="Previous track">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12H5V6h2zm12 0v12l-9-6 9-6z"/></svg>
+        </button>
+        <button class="key key--primary" data-action="toggle" aria-label="Play">
+          <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7L8 5z"/></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M7 5h4v14H7V5zm6 0h4v14h-4V5z"/></svg>
+        </button>
+        <button class="key" data-action="next" aria-label="Next track">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12h2V6h-2zM5 6v12l9-6-9-6z"/></svg>
+        </button>
+        <div class="fader">
+          <label class="fader__label" for="volume">VOL</label>
+          <input class="fader__input" id="volume" type="range" min="0" max="100" step="1" value="50" aria-label="Volume" />
+        </div>
+      </div>
+
+      <div class="notice" hidden></div>
+
+      <div class="overlay" hidden>
+        <p class="overlay__text"></p>
+        <button class="overlay__action" type="button"></button>
+      </div>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

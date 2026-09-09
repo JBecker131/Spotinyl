@@ -7,8 +7,8 @@
  */
 
 export const ARM_PARKED_DEG = 0;
-export const ARM_LEAD_IN_DEG = 18;
-export const ARM_INNER_DEG = 32;
+export const ARM_LEAD_IN_DEG = 44;
+export const ARM_INNER_DEG = 56;
 
 export function progressRatio(progressMs, durationMs) {
   if (!Number.isFinite(progressMs) || !Number.isFinite(durationMs)) return 0;

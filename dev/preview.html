@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spotivyn — state preview</title>
+    <link rel="stylesheet" href="../src/popup/popup.css" />
+    <style>
+      body { width: auto; padding: 20px; background: #191410; }
+      h1 { color: #efe7d8; font: 600 16px/1.4 sans-serif; margin: 0 0 16px; }
+      .grid { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-start; }
+      .case { width: 360px; }
+      .case > figcaption {
+        color: #e8a33d; font: 600 11px/1.6 monospace; letter-spacing: .1em;
+        text-transform: uppercase; margin-bottom: 6px;
+      }
+      .case > .deck { background: linear-gradient(160deg,#4a3120,#2a1a10); }
+    </style>
+  </head>
+  <body>
+    <h1>Spotivyn — every UI state</h1>
+    <div class="grid" id="grid"></div>
+
+    <script type="module">
+      import { render } from '../src/popup/render.js';
+      import { STATUS } from '../src/lib/player-state.js';
+
+      const track = {
+        id: 't1',
+        title: 'Midnight City',
+        artist: 'M83',
+        album: "Hurry Up, We're Dreaming",
+        // A data URI keeps the preview working with no network.
+        artUrl: 'data:image/svg+xml,' + encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+             <rect width="120" height="120" fill="#1c2b4a"/>
+             <circle cx="60" cy="60" r="34" fill="#e8a33d"/>
+           </svg>`),
+        durationMs: 243000,
+      };
+
+      const base = {
+        status: STATUS.READY, track: null, isPlaying: false, progressMs: 0,
+        durationMs: 0, volumePercent: 50, fetchedAt: 0, message: '',
+      };
+
+      const cases = [
+        ['ready — playing', { ...base, track, isPlaying: true, progressMs: 107000, durationMs: 243000, volumePercent: 62 }],
+        ['ready — paused', { ...base, track, isPlaying: false, progressMs: 107000, durationMs: 243000, volumePercent: 62 }],
+        ['ready — near the inner groove', { ...base, track, isPlaying: true, progressMs: 238000, durationMs: 243000, volumePercent: 20 }],
+        ['no-device', { ...base, status: STATUS.NO_DEVICE }],
+        ['needs-auth', { ...base, status: STATUS.NEEDS_AUTH }],
+        ['needs-setup', { ...base, status: STATUS.NEEDS_SETUP }],
+        ['forbidden', { ...base, status: STATUS.FORBIDDEN, track, durationMs: 243000, message: 'Spotify Premium is required to control playback.' }],
+        ['error', { ...base, status: STATUS.ERROR, track, durationMs: 243000, message: 'Cannot reach Spotify. Check your connection.' }],
+      ];
+
+      const template = await fetch('../src/popup/popup.html').then((r) => r.text());
+      const deckMarkup = new DOMParser().parseFromString(template, 'text/html')
+        .querySelector('.deck').outerHTML;
+
+      const grid = document.getElementById('grid');
+      for (const [label, state] of cases) {
+        const figure = document.createElement('figure');
+        figure.className = 'case';
+        figure.style.margin = '0';
+        figure.innerHTML = `<figcaption>${label}</figcaption>${deckMarkup}`;
+        grid.append(figure);
+        render(figure.querySelector('.deck'), state);
+      }
+    </script>
+  </body>
+</html>
