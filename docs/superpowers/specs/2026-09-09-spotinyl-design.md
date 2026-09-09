@@ -1,4 +1,4 @@
-# Spotivyn — Design
+# Spotinyl — Design
 
 **Date:** 2026-09-09
 **Status:** Approved, ready for implementation planning

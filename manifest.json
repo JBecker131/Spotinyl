@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Spotivyn",
+  "name": "Spotinyl",
   "version": "1.0.0",
   "description": "A turntable for your Spotify playback: see what's spinning, skip, pause, and set the volume.",
   "permissions": ["identity", "storage"],
@@ -14,7 +14,7 @@
   },
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_title": "Spotivyn",
+    "default_title": "Spotinyl",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",

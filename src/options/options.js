@@ -36,7 +36,7 @@ $('connect').addEventListener('click', async () => {
   report('Opening Spotify…');
   const response = await chrome.runtime.sendMessage({ type: 'BEGIN_AUTH' });
   if (response?.ok) {
-    report('Connected. Open the Spotivyn popup to see what is playing.');
+    report('Connected. Open the Spotinyl popup to see what is playing.');
   } else {
     report(response?.error?.message ?? 'Could not connect to Spotify.', 'error');
   }

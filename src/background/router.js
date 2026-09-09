@@ -133,7 +133,7 @@ export function createRouter({ storage, fetchImpl, launchAuthFlow, redirectUri, 
       case 'SET_VOLUME': {
         const state = await readState(config);
         if (state.status === STATUS.NEEDS_SETUP || state.status === STATUS.NEEDS_AUTH) {
-          return errResponse(state.status, 'Connect Spotivyn to Spotify first.', state);
+          return errResponse(state.status, 'Connect Spotinyl to Spotify first.', state);
         }
         if (message.type === 'TOGGLE_PLAY') {
           const action = state.isPlaying ? pause : play;

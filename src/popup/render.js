@@ -3,11 +3,11 @@ import { armAngle } from '../lib/geometry.js';
 
 const OVERLAY_COPY = {
   [STATUS.NEEDS_SETUP]: {
-    text: 'Spotivyn needs your Spotify Client ID before it can connect.',
+    text: 'Spotinyl needs your Spotify Client ID before it can connect.',
     action: 'Open setup',
   },
   [STATUS.NEEDS_AUTH]: {
-    text: 'Connect Spotivyn to your Spotify account to see what is playing.',
+    text: 'Connect Spotinyl to your Spotify account to see what is playing.',
     action: 'Connect to Spotify',
   },
 };

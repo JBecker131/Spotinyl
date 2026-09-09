@@ -1,4 +1,4 @@
-# Spotivyn
+# Spotinyl
 
 A Chrome extension that shows what you are playing on Spotify as a spinning
 record, and lets you skip, pause, and set the volume from a turntable-styled
@@ -14,18 +14,18 @@ track plays, three chunky transport keys, and a volume fader.](docs/screenshot.p
 - **Spotify Premium**, to use the controls. Spotify's Web API refuses play,
   pause, skip, and volume requests on free accounts. The now-playing display
   works on a free account.
-- Nothing else. Spotivyn has zero dependencies and needs no build step.
+- Nothing else. Spotinyl has zero dependencies and needs no build step.
 
 ## Install
 
 1. Open `chrome://extensions`, turn on **Developer mode**, click
    **Load unpacked**, and select this folder.
-2. Click the Spotivyn icon, then **Open setup** (or right-click the icon and
+2. Click the Spotinyl icon, then **Open setup** (or right-click the icon and
    choose **Options**).
 
 ## Connect it to Spotify
 
-Spotivyn uses your own Spotify developer credentials, so nothing is shared with
+Spotinyl uses your own Spotify developer credentials, so nothing is shared with
 anyone else. This is a one-time, roughly five-minute setup.
 
 1. On the setup page, **copy the redirect URI**. It looks like
@@ -34,7 +34,7 @@ anyone else. This is a one-time, roughly five-minute setup.
    and click **Create app**. Give it any name and description.
 3. Paste the redirect URI into **Redirect URIs**, tick **Web API**, and save.
 4. Copy the app's **Client ID** and paste it into the setup page, then **Save**.
-   Ignore the Client Secret — Spotivyn uses PKCE and never needs it.
+   Ignore the Client Secret — Spotinyl uses PKCE and never needs it.
 5. Click **Connect to Spotify** and approve the two permissions it asks for.
 
 Start playing something on any Spotify device, then open the popup.
@@ -47,7 +47,7 @@ Start playing something on any Spotify device, then open the popup.
 | Record frozen, tonearm holding still | Paused. |
 | Record still, tonearm parked on its rest | Nothing is playing, or no Spotify device is active. |
 | Blank white record label | Not connected to Spotify yet. |
-| Amber lamp lit | Spotivyn has a live read on your playback. |
+| Amber lamp lit | Spotinyl has a live read on your playback. |
 
 ## Troubleshooting
 
@@ -66,7 +66,7 @@ the Spotify app, phone, or web player, then reopen the popup.
 
 Your tokens are stored in `chrome.storage.local`, which is readable only by
 this extension. Nothing is sent anywhere except `accounts.spotify.com` and
-`api.spotify.com`. Spotivyn keeps no listening history and collects no
+`api.spotify.com`. Spotinyl keeps no listening history and collects no
 analytics.
 
 ## Development
@@ -81,4 +81,4 @@ the visuals can be worked on without Spotify credentials. It needs an HTTP
 origin — serve the repository root and open
 `http://localhost:8080/dev/preview.html`.
 
-Spotivyn is not affiliated with or endorsed by Spotify.
+Spotinyl is not affiliated with or endorsed by Spotify.
