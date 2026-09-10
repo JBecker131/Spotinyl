@@ -86,6 +86,7 @@ analytics.
 ```bash
 npm test          # run every unit test (node:test, no dependencies)
 npm run icons     # regenerate icons/ from assets/spotinyl-logo.png
+npm run package   # build dist/spotinyl-<version>.zip for the Chrome Web Store
 ```
 
 `dev/preview.html` renders the popup against mock data for every UI state, so

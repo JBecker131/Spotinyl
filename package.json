@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
-    "icons": "node tools/make-icons.js"
+    "icons": "node tools/make-icons.js",
+    "package": "node tools/package.js"
   }
 }
