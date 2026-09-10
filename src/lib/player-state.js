@@ -9,6 +9,10 @@ export const STATUS = Object.freeze({
 
 const PREMIUM_MESSAGE = 'Spotify Premium is required to control playback.';
 
+// Shown both by the router, when it refuses to send the command, and by the
+// fader itself as the tooltip explaining why it is dead.
+export const VOLUME_UNSUPPORTED = 'This device sets its own volume. Use its buttons or dial instead.';
+
 export function formatTime(ms) {
   if (!Number.isFinite(ms) || ms < 0) return '0:00';
   const total = Math.floor(ms / 1000);
@@ -42,6 +46,19 @@ export function toTrack(playback) {
   };
 }
 
+/**
+ * Whether Spotify will accept a volume change for a device. `supports_volume`
+ * is false on plenty of Connect targets — a TV, a car head unit, a phone whose
+ * volume belongs to its hardware keys — and `is_restricted` refuses every
+ * command. Spotify only added `supports_volume` later and still omits it on
+ * some clients, so a missing flag means "try it", not "no".
+ */
+export function canSetVolume(device) {
+  if (!device) return false;
+  if (device.is_restricted) return false;
+  return device.supports_volume !== false;
+}
+
 export function interpolateProgress({ progressMs, durationMs, isPlaying, fetchedAt, now }) {
   if (!Number.isFinite(progressMs)) return 0;
   // Math.max guards against a clock that appears to run backwards.
@@ -59,19 +76,33 @@ function base(status, extra = {}) {
     progressMs: 0,
     durationMs: 0,
     volumePercent: null,
+    deviceId: null,
+    canSetVolume: false,
     fetchedAt: 0,
     message: '',
     ...extra,
   };
 }
 
-export function deriveState({ clientId, hasTokens, result, previousTrack = null, fetchedAt = 0 }) {
+export function deriveState({
+  clientId, hasTokens, result, previousTrack = null, previousProgressMs = 0, fetchedAt = 0,
+}) {
   if (!clientId) return base(STATUS.NEEDS_SETUP);
   if (!hasTokens) return base(STATUS.NEEDS_AUTH);
 
   if (result?.ok) {
     const playback = result.data;
-    if (!playback || !playback.item) return base(STATUS.NO_DEVICE, { fetchedAt });
+    // Spotify reports nothing at all once the last device leaves Connect, which
+    // a phone does within seconds of a pause. What was on the deck is still what
+    // the user paused, so hold it there rather than clearing to an empty deck.
+    if (!playback || !playback.item) {
+      return base(STATUS.NO_DEVICE, {
+        fetchedAt,
+        track: previousTrack,
+        progressMs: previousTrack ? previousProgressMs : 0,
+        durationMs: previousTrack?.durationMs ?? 0,
+      });
+    }
     const track = toTrack(playback);
     return base(STATUS.READY, {
       track,
@@ -81,6 +112,8 @@ export function deriveState({ clientId, hasTokens, result, previousTrack = null,
       volumePercent: Number.isFinite(playback.device?.volume_percent)
         ? playback.device.volume_percent
         : null,
+      deviceId: playback.device?.id ?? null,
+      canSetVolume: canSetVolume(playback.device),
       fetchedAt,
     });
   }

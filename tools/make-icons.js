@@ -1,5 +1,5 @@
-import { deflateSync } from 'node:zlib';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { deflateSync, inflateSync } from 'node:zlib';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -54,49 +54,124 @@ export function encodePng(width, height, rgba) {
   ]);
 }
 
-// Radial colour profile of the record, sampled by distance from centre.
-function sampleRecord(distance, radius) {
-  if (distance > radius) return [0, 0, 0, 0]; // outside the disc
-  if (distance < radius * 0.09) return [0, 0, 0, 0]; // spindle hole
-  if (distance < radius * 0.34) return [232, 163, 61, 255]; // amber label
-  const groove = Math.sin(distance * 1.15) > 0 ? 30 : 15;
-  return [groove, groove, groove + 4, 255];
+function paeth(a, b, c) {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  if (pa <= pb && pa <= pc) return a;
+  return pb <= pc ? b : c;
 }
 
-export function drawRecord(size) {
-  const SS = 4; // supersample factor, for antialiased edges
-  const n = size * SS;
-  const centre = (n - 1) / 2;
-  const radius = n / 2;
+// Enough of the PNG spec to read the logo: 8-bit RGB or RGBA, no interlacing.
+export function decodePng(buffer) {
+  const bytes = Buffer.from(buffer);
+  let width = 0, height = 0, channels = 0;
+  const parts = [];
+
+  for (let offset = 8; offset + 8 <= bytes.length; ) {
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.subarray(offset + 4, offset + 8).toString('latin1');
+    const data = bytes.subarray(offset + 8, offset + 8 + length);
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      if (data[8] !== 8) throw new Error(`unsupported bit depth: ${data[8]}`);
+      if (data[9] !== 2 && data[9] !== 6) throw new Error(`unsupported colour type: ${data[9]}`);
+      if (data[12] !== 0) throw new Error('interlaced PNGs are not supported');
+      channels = data[9] === 6 ? 4 : 3;
+    } else if (type === 'IDAT') {
+      parts.push(data);
+    } else if (type === 'IEND') {
+      break;
+    }
+    offset += 12 + length;
+  }
+  if (!width || !height) throw new Error('no IHDR chunk found');
+
+  const raw = inflateSync(Buffer.concat(parts));
+  const stride = width * channels;
+  const lines = Buffer.alloc(stride * height);
+
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    const out = y * stride;
+    const prior = out - stride;
+    for (let x = 0; x < stride; x++) {
+      const left = x >= channels ? lines[out + x - channels] : 0;
+      const up = y > 0 ? lines[prior + x] : 0;
+      const upLeft = y > 0 && x >= channels ? lines[prior + x - channels] : 0;
+      let value = line[x];
+      if (filter === 1) value += left;
+      else if (filter === 2) value += up;
+      else if (filter === 3) value += (left + up) >> 1;
+      else if (filter === 4) value += paeth(left, up, upLeft);
+      else if (filter !== 0) throw new Error(`unsupported filter type: ${filter}`);
+      lines[out + x] = value & 0xff;
+    }
+  }
+
+  if (channels === 4) return { width, height, rgba: new Uint8Array(lines) };
+
+  const rgba = new Uint8Array(width * height * 4);
+  for (let i = 0, j = 0; i < lines.length; i += 3, j += 4) {
+    rgba[j] = lines[i];
+    rgba[j + 1] = lines[i + 1];
+    rgba[j + 2] = lines[i + 2];
+    rgba[j + 3] = 255;
+  }
+  return { width, height, rgba };
+}
+
+// Centre-crops the source to a square and box-filters it down to size x size,
+// which keeps the artwork's edges clean at 16px.
+export function resizeToSquare(source, width, height, size) {
+  const side = Math.min(width, height);
+  const left = (width - side) / 2;
+  const top = (height - side) / 2;
   const px = new Uint8Array(size * size * 4);
 
   for (let y = 0; y < size; y++) {
+    const y0 = Math.floor(top + (y * side) / size);
+    const y1 = Math.max(y0 + 1, Math.floor(top + ((y + 1) * side) / size));
     for (let x = 0; x < size; x++) {
-      let r = 0, g = 0, b = 0, a = 0;
-      for (let sy = 0; sy < SS; sy++) {
-        for (let sx = 0; sx < SS; sx++) {
-          const d = Math.hypot(x * SS + sx - centre, y * SS + sy - centre);
-          const [sr, sg, sb, sa] = sampleRecord(d, radius);
-          r += sr; g += sg; b += sb; a += sa;
+      const x0 = Math.floor(left + (x * side) / size);
+      const x1 = Math.max(x0 + 1, Math.floor(left + ((x + 1) * side) / size));
+
+      let r = 0, g = 0, b = 0, a = 0, n = 0;
+      for (let sy = y0; sy < y1; sy++) {
+        for (let sx = x0; sx < x1; sx++) {
+          const i = (sy * width + sx) * 4;
+          const alpha = source[i + 3] / 255;
+          r += source[i] * alpha; // weight colour by coverage so edges don't halo
+          g += source[i + 1] * alpha;
+          b += source[i + 2] * alpha;
+          a += source[i + 3];
+          n++;
         }
       }
-      const m = SS * SS;
+
       const i = (y * size + x) * 4;
-      px[i] = Math.round(r / m);
-      px[i + 1] = Math.round(g / m);
-      px[i + 2] = Math.round(b / m);
-      px[i + 3] = Math.round(a / m);
+      const coverage = a / (n * 255);
+      px[i] = coverage ? Math.round(r / n / coverage) : 0;
+      px[i + 1] = coverage ? Math.round(g / n / coverage) : 0;
+      px[i + 2] = coverage ? Math.round(b / n / coverage) : 0;
+      px[i + 3] = Math.round(a / n);
     }
   }
   return px;
 }
 
-// Running this file directly regenerates the icon set.
+// Running this file directly regenerates the icon set from the logo artwork.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const outDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'icons');
+  const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+  const outDir = join(root, 'icons');
+  const logo = decodePng(readFileSync(join(root, 'assets', 'spotinyl-logo.png')));
   mkdirSync(outDir, { recursive: true });
   for (const size of [16, 32, 48, 128]) {
-    writeFileSync(join(outDir, `icon-${size}.png`), encodePng(size, size, drawRecord(size)));
+    const px = resizeToSquare(logo.rgba, logo.width, logo.height, size);
+    writeFileSync(join(outDir, `icon-${size}.png`), encodePng(size, size, px));
     console.log(`wrote icons/icon-${size}.png`);
   }
 }

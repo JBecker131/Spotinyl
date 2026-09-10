@@ -1,0 +1,21 @@
+/* The bundled faces, declared once for every extension page. See
+   assets/fonts/README.md for the licences. A face is only downloaded by a page
+   that actually uses it, so declaring both here costs the options page nothing. */
+
+/* The Spotinyl wordmark face. */
+@font-face {
+  font-family: "Memory of 2018";
+  src: url("../../assets/fonts/MemoryOf2018.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+/* The playback-clock face in the popup. */
+@font-face {
+  font-family: "Blue Ridge";
+  src: url("../../assets/fonts/BlueRidge.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}

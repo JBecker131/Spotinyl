@@ -62,6 +62,18 @@ control is a Premium-only API.
 **"No Record Loaded"** — Spotify reports no active device. Play something in
 the Spotify app, phone, or web player, then reopen the popup.
 
+**The fader is greyed out and says the device sets its own volume** — some
+Connect targets keep their volume to themselves: TVs, car head units, and
+phones whose hardware keys own the dial. Spotify marks these `supports_volume:
+false` and refuses the change, so the fader steps aside rather than pretending.
+Use the device's own buttons.
+
+**The fader moves the wrong speaker** — Spotinyl aims each volume change at the
+device it can see playing, falling back to the last one it saw. If your phone
+has been paused long enough to drop off Connect and the desktop app has since
+taken over, press play in the popup to pull the session back to the phone
+first.
+
 ## Privacy
 
 Your tokens are stored in `chrome.storage.local`, which is readable only by
@@ -73,7 +85,7 @@ analytics.
 
 ```bash
 npm test          # run every unit test (node:test, no dependencies)
-npm run icons     # regenerate icons/ from tools/make-icons.js
+npm run icons     # regenerate icons/ from assets/spotinyl-logo.png
 ```
 
 `dev/preview.html` renders the popup against mock data for every UI state, so

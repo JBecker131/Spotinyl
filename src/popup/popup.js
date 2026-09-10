@@ -4,15 +4,28 @@ import { STATUS, interpolateProgress } from '../lib/player-state.js';
 const POLL_INTERVAL_MS = 4000;
 const VOLUME_DEBOUNCE_MS = 150;
 const ERROR_GRACE_MS = 2000;
+// A device leaving Connect deserves longer than a failed command. Spotify goes
+// quiet for a beat after a skip, and a phone that has only paused comes back on
+// its own; 4.5s outlasts both, so the notice arrives only once there really is
+// nothing left to talk to.
+const DISCONNECT_GRACE_MS = 4500;
 
 // Failures that are worth waiting out. A flaky Spotify command clears itself on
 // the next poll; anything still failing after the grace period is real.
-const HELD_STATUSES = new Set([STATUS.ERROR, STATUS.FORBIDDEN]);
+const HELD_STATUSES = new Set([STATUS.ERROR, STATUS.FORBIDDEN, STATUS.NO_DEVICE]);
+
+const graceFor = (status) =>
+  (status === STATUS.NO_DEVICE ? DISCONNECT_GRACE_MS : ERROR_GRACE_MS);
 
 const deck = document.querySelector('.deck');
 
 let state = null;
 let pollTimer = null;
+// Bumped when a command starts and again when it finishes. A poll that was out
+// over either edge is answering from before the press, and applying it would
+// put the record back into motion after a pause or the old track back on the
+// deck after a skip.
+let commandEpoch = 0;
 let volumeTimer = null;
 let pendingFailure = null;
 let graceTimer = null;
@@ -62,15 +75,23 @@ function apply(response) {
   // spinning and the progress keeps interpolating off the last good state, so a
   // blip is invisible. Only a failure that persists is worth showing.
   if (pendingFailure) {
-    pendingFailure = next; // Keep the freshest one to commit.
+    // Keep the freshest one to commit, but not at the cost of the notice: the
+    // command that failed is what knows the device is gone, while the polls
+    // behind it report the same silence with nothing to say about it.
+    pendingFailure = { ...next, message: next.message || pendingFailure.message };
     return;
   }
   pendingFailure = next;
-  graceTimer = setTimeout(commitPendingFailure, ERROR_GRACE_MS);
+  // Timed from the first sign of trouble rather than the latest, so a run of
+  // failures cannot keep pushing the notice out of reach.
+  graceTimer = setTimeout(commitPendingFailure, graceFor(next.status));
 }
 
 async function poll() {
-  apply(await send({ type: 'GET_STATE' }));
+  const epoch = commandEpoch;
+  const response = await send({ type: 'GET_STATE' });
+  if (epoch !== commandEpoch) return; // Overtaken by a command; its reply is newer.
+  apply(response);
 }
 
 /**
@@ -96,11 +117,14 @@ function tick() {
 
 /** Applies the expected outcome immediately, then reconciles from the reply. */
 async function control(message, optimistic) {
+  commandEpoch += 1;
   if (optimistic && state) {
     state = { ...state, ...optimistic(state), fetchedAt: Date.now() };
     render(deck, state);
   }
-  apply(await send(message));
+  const response = await send(message);
+  commandEpoch += 1;
+  apply(response);
 }
 
 deck.addEventListener('click', (event) => {

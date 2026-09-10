@@ -3,6 +3,7 @@
   --paper: #efe7d8;
   --amber: #e8a33d;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --display: "Memory of 2018", var(--sans);
 }
 
 * { box-sizing: border-box; }
@@ -17,7 +18,7 @@ body {
 
 .page { max-width: 660px; margin: 0 auto; padding: 40px 24px 64px; }
 
-h1 { font-size: 24px; margin: 0 0 8px; letter-spacing: 0.01em; }
+h1 { font-family: var(--display); font-weight: 400; font-size: 34px; margin: 0 0 10px; letter-spacing: 0.02em; }
 .lede { margin: 0 0 28px; color: #c9b9a1; line-height: 1.6; }
 
 .steps { margin: 0; padding-left: 22px; display: grid; gap: 26px; }

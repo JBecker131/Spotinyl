@@ -1,4 +1,4 @@
-import { STATUS, formatTime } from '../lib/player-state.js';
+import { STATUS, formatTime, VOLUME_UNSUPPORTED } from '../lib/player-state.js';
 import { armAngle } from '../lib/geometry.js';
 
 const OVERLAY_COPY = {
@@ -13,6 +13,17 @@ const OVERLAY_COPY = {
 };
 
 const CONTROLLABLE = new Set([STATUS.READY, STATUS.NO_DEVICE, STATUS.ERROR]);
+
+/**
+ * The fader goes dead only for a device that has told us it sets its own
+ * volume — a TV, a car, a phone whose hardware keys own the dial. With no
+ * device on Connect there is nobody to have refused, and the router still aims
+ * at the last one it saw, so the fader stays live and lets Spotify answer.
+ */
+export function faderEnabled({ status, deviceId, canSetVolume }) {
+  if (!CONTROLLABLE.has(status)) return false;
+  return !(deviceId && !canSetVolume);
+}
 
 const q = (root, selector) => root.querySelector(selector);
 
@@ -99,11 +110,13 @@ export function render(root, state) {
   toggle.setAttribute('aria-label', playing ? 'Pause' : 'Play');
 
   const controlsEnabled = CONTROLLABLE.has(status);
-  for (const control of root.querySelectorAll('.key, .fader__input')) {
-    control.disabled = !controlsEnabled;
+  for (const key of root.querySelectorAll('.key')) {
+    key.disabled = !controlsEnabled;
   }
 
   const volume = q(root, '.fader__input');
+  volume.disabled = !faderEnabled(state);
+  volume.title = volume.disabled && controlsEnabled ? VOLUME_UNSUPPORTED : '';
   // Do not fight the user while they are dragging the fader.
   if (document.activeElement !== volume && Number.isFinite(volumePercent)) {
     volume.value = String(volumePercent);
@@ -130,7 +143,7 @@ function titleFor(status) {
   switch (status) {
     case STATUS.NEEDS_SETUP: return 'Setup required';
     case STATUS.NEEDS_AUTH: return 'Not connected';
-    case STATUS.NO_DEVICE: return 'No Record Loaded';
+    case STATUS.NO_DEVICE: return 'No Record Loaded..';
     case STATUS.ERROR: return 'Unavailable';
     default: return 'Nothing playing';
   }

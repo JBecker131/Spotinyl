@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { inflateSync } from 'node:zlib';
-import { encodePng, drawRecord } from '../tools/make-icons.js';
+import { readFileSync } from 'node:fs';
+import { encodePng, decodePng, resizeToSquare } from '../tools/make-icons.js';
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
@@ -38,29 +39,43 @@ test('encodePng ends with an IEND chunk', () => {
   assert.equal(png.subarray(png.length - 8, png.length - 4).toString('latin1'), 'IEND');
 });
 
-test('drawRecord returns RGBA for every pixel', () => {
-  const px = drawRecord(48);
-  assert.equal(px.length, 48 * 48 * 4);
+test('decodePng round-trips pixels written by encodePng', () => {
+  const rgba = new Uint8Array([
+    10, 20, 30, 255, 40, 50, 60, 128,
+    70, 80, 90, 255, 100, 110, 120, 0,
+  ]);
+  const decoded = decodePng(encodePng(2, 2, rgba));
+  assert.equal(decoded.width, 2);
+  assert.equal(decoded.height, 2);
+  assert.deepEqual([...decoded.rgba], [...rgba]);
 });
 
-test('drawRecord punches a transparent spindle hole at the centre', () => {
-  const size = 48;
-  const px = drawRecord(size);
-  const centre = ((size / 2) * size + size / 2) * 4;
-  assert.equal(px[centre + 3], 0, 'centre pixel must be transparent');
+test('decodePng reads the logo artwork the icons are cut from', () => {
+  const logo = decodePng(readFileSync(new URL('../assets/spotinyl-logo.png', import.meta.url)));
+  assert.ok(logo.width > 0 && logo.height > 0);
+  assert.equal(logo.rgba.length, logo.width * logo.height * 4);
 });
 
-test('drawRecord leaves the corners transparent so the disc reads as round', () => {
-  const px = drawRecord(48);
-  assert.equal(px[3], 0, 'top-left corner alpha');
+test('resizeToSquare returns RGBA for every pixel of a square image', () => {
+  const px = resizeToSquare(new Uint8Array(8 * 8 * 4), 8, 8, 4);
+  assert.equal(px.length, 4 * 4 * 4);
 });
 
-test('drawRecord paints an opaque amber label ring around the hole', () => {
-  const size = 64;
-  const px = drawRecord(size);
-  // A fifth of the radius out from centre lands inside the label.
-  const x = Math.round(size / 2 + size * 0.1);
-  const i = ((size / 2) * size + x) * 4;
-  assert.equal(px[i + 3], 255, 'label must be opaque');
-  assert.ok(px[i] > px[i + 2], 'label is amber: more red than blue');
+test('resizeToSquare averages the block each output pixel covers', () => {
+  // A 2x2 source where the left half is white and the right half is black.
+  const src = new Uint8Array([
+    255, 255, 255, 255, 0, 0, 0, 255,
+    255, 255, 255, 255, 0, 0, 0, 255,
+  ]);
+  const px = resizeToSquare(src, 2, 2, 1);
+  assert.deepEqual([...px], [128, 128, 128, 255]);
+});
+
+test('resizeToSquare centre-crops a wide image to a square', () => {
+  // 3x1 strip: red, green, blue. The square crop keeps the middle pixel.
+  const src = new Uint8Array([
+    255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
+  ]);
+  const px = resizeToSquare(src, 3, 1, 1);
+  assert.deepEqual([...px], [0, 255, 0, 255]);
 });

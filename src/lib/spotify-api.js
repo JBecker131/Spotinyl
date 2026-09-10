@@ -20,7 +20,7 @@ function retryAfterMs(headers) {
   return Number.isFinite(seconds) && seconds >= 0 ? seconds * 1000 : DEFAULT_RETRY_AFTER_MS;
 }
 
-export async function apiRequest({ fetchImpl, accessToken, method, path, query }) {
+export async function apiRequest({ fetchImpl, accessToken, method, path, query, body }) {
   const url = new URL(API_BASE + path);
   for (const [key, value] of Object.entries(query ?? {})) {
     url.searchParams.set(key, String(value));
@@ -30,7 +30,11 @@ export async function apiRequest({ fetchImpl, accessToken, method, path, query }
   try {
     response = await fetchImpl(url.toString(), {
       method,
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
     });
   } catch {
     return failure('offline');
@@ -91,16 +95,42 @@ export const next = ({ fetchImpl, accessToken }) =>
 export const previous = ({ fetchImpl, accessToken }) =>
   apiRequest({ fetchImpl, accessToken, method: 'POST', path: '/me/player/previous' });
 
+export const getDevices = ({ fetchImpl, accessToken }) =>
+  apiRequest({ fetchImpl, accessToken, method: 'GET', path: '/me/player/devices' });
+
+/**
+ * Hands the playback session to a device and starts it. This is what wakes a
+ * phone that has left Spotify Connect: /me/player/play only resumes a session
+ * that is still live, and Spotify answers it with a 404 once the phone is gone.
+ */
+export const transferPlayback = ({ fetchImpl, accessToken, deviceId }) =>
+  apiRequest({
+    fetchImpl,
+    accessToken,
+    method: 'PUT',
+    path: '/me/player',
+    body: { device_ids: [deviceId], play: true },
+  });
+
 export function clampVolume(percent) {
   if (!Number.isFinite(percent)) return 0;
   return Math.min(100, Math.max(0, Math.round(percent)));
 }
 
-export const setVolume = ({ fetchImpl, accessToken, percent }) =>
+/**
+ * Without a device_id Spotify aims the change at whatever it currently calls
+ * the active device, which is not always the one on the deck: a phone drops off
+ * Connect seconds after a pause, and the desktop app happily takes its place.
+ * Naming the device is what keeps the fader pointed at the thing being heard.
+ */
+export const setVolume = ({ fetchImpl, accessToken, percent, deviceId }) =>
   apiRequest({
     fetchImpl,
     accessToken,
     method: 'PUT',
     path: '/me/player/volume',
-    query: { volume_percent: clampVolume(percent) },
+    query: {
+      volume_percent: clampVolume(percent),
+      ...(deviceId ? { device_id: deviceId } : {}),
+    },
   });

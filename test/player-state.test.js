@@ -191,3 +191,89 @@ test('deriveState never reports playing in a non-ready status', () => {
     assert.equal(deriveState({ clientId: 'abc', hasTokens: true, result }).isPlaying, false);
   }
 });
+
+test('an empty playback read keeps the remembered track on screen, paused', () => {
+  const previousTrack = toTrack(playback);
+  const state = deriveState({
+    clientId: 'abc',
+    hasTokens: true,
+    result: ok(null),
+    previousTrack,
+    previousProgressMs: 107000,
+  });
+  assert.equal(state.status, STATUS.NO_DEVICE);
+  assert.equal(state.track.title, 'Midnight City');
+  assert.equal(state.isPlaying, false, 'a device that has gone quiet is not playing');
+  assert.equal(state.progressMs, 107000, 'the arm holds where the track was paused');
+  assert.equal(state.durationMs, 243000);
+});
+
+test('an empty playback read with nothing remembered stays blank', () => {
+  const state = deriveState({ clientId: 'abc', hasTokens: true, result: ok(null) });
+  assert.equal(state.status, STATUS.NO_DEVICE);
+  assert.equal(state.track, null);
+  assert.equal(state.progressMs, 0);
+});
+
+test('deriveState carries the device id so a control can target it', () => {
+  const state = deriveState({
+    clientId: 'abc',
+    hasTokens: true,
+    result: ok({ ...playback, device: { id: 'PHONE', volume_percent: 62 } }),
+  });
+  assert.equal(state.deviceId, 'PHONE');
+});
+
+test('deriveState treats a device that supports volume as settable', () => {
+  const state = deriveState({
+    clientId: 'abc',
+    hasTokens: true,
+    result: ok({
+      ...playback,
+      device: { id: 'PHONE', volume_percent: 62, supports_volume: true },
+    }),
+  });
+  assert.equal(state.canSetVolume, true);
+});
+
+test('deriveState refuses volume on a device that does not support it', () => {
+  const state = deriveState({
+    clientId: 'abc',
+    hasTokens: true,
+    result: ok({
+      ...playback,
+      device: { id: 'TV', volume_percent: 62, supports_volume: false },
+    }),
+  });
+  assert.equal(state.canSetVolume, false);
+});
+
+test('deriveState refuses volume on a restricted device', () => {
+  const state = deriveState({
+    clientId: 'abc',
+    hasTokens: true,
+    result: ok({
+      ...playback,
+      device: { id: 'TV', volume_percent: 62, supports_volume: true, is_restricted: true },
+    }),
+  });
+  assert.equal(state.canSetVolume, false);
+});
+
+// Spotify omitted supports_volume for years, and still does on some clients.
+// Assuming the fader works and letting Spotify object beats greying it out on
+// a device that would have taken the change.
+test('deriveState assumes volume works when the device does not say', () => {
+  const state = deriveState({
+    clientId: 'abc', hasTokens: true, result: ok(playback),
+  });
+  assert.equal(state.canSetVolume, true);
+});
+
+test('deriveState reports no settable volume when there is no device', () => {
+  const state = deriveState({
+    clientId: 'abc', hasTokens: true, result: ok(null),
+  });
+  assert.equal(state.deviceId, null);
+  assert.equal(state.canSetVolume, false);
+});

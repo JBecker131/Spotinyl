@@ -12,6 +12,8 @@
   --paper: #efe7d8;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --condensed: "Helvetica Neue", "Arial Narrow", "Roboto Condensed", var(--sans);
+  --display: "Memory of 2018", var(--condensed);
+  --clock: "Blue Ridge", var(--condensed);
 }
 
 * { box-sizing: border-box; }
@@ -55,13 +57,17 @@ body {
 .badge {
   position: absolute;
   right: 14px;
-  bottom: 12px;
-  text-align: right;
-  font-family: var(--condensed);
+  bottom: 14px;
   color: #55595e;
 }
-.badge__mark { display: block; font-size: 13px; letter-spacing: 0.22em; font-weight: 700; }
-.badge__model { display: block; font-size: 9px; letter-spacing: 0.3em; color: #7d8288; }
+.badge__mark {
+  display: block;
+  font-family: var(--display);
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+  line-height: 1;
+}
 
 .led {
   position: absolute;
@@ -266,9 +272,9 @@ body {
   display: flex;
   justify-content: space-between;
   margin-top: 4px;
-  font-family: var(--condensed);
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-family: var(--clock);
+  font-size: 12px;
+  letter-spacing: 0.04em;
   color: #b1a08a;
   font-variant-numeric: tabular-nums;
 }

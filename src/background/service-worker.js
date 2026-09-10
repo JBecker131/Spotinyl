@@ -2,8 +2,12 @@ import { createRouter } from './router.js';
 
 const storage = {
   async get() {
-    const { clientId = null, tokens = null } = await chrome.storage.local.get(['clientId', 'tokens']);
-    return { clientId, tokens };
+    const {
+      clientId = null, tokens = null, lastDeviceId = null, lastTrack = null, lastProgressMs = 0,
+    } = await chrome.storage.local.get([
+      'clientId', 'tokens', 'lastDeviceId', 'lastTrack', 'lastProgressMs',
+    ]);
+    return { clientId, tokens, lastDeviceId, lastTrack, lastProgressMs };
   },
   async set(patch) {
     await chrome.storage.local.set(patch);

@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   apiRequest, getPlayback, play, pause, next, previous, setVolume, clampVolume,
+  getDevices, transferPlayback,
 } from '../src/lib/spotify-api.js';
 
 function response(status, { body = '', headers = {} } = {}) {
@@ -143,4 +144,28 @@ test('setVolume sends a clamped integer percent', async () => {
   });
   assert.equal(seen.init.method, 'PUT');
   assert.equal(seen.url, 'https://api.spotify.com/v1/me/player/volume?volume_percent=100');
+});
+
+test('setVolume targets a device when one is given', async () => {
+  let seen = null;
+  await setVolume({
+    fetchImpl: async (url) => { seen = url; return response(204); },
+    accessToken: 't',
+    percent: 40,
+    deviceId: 'PHONE',
+  });
+  assert.equal(
+    seen,
+    'https://api.spotify.com/v1/me/player/volume?volume_percent=40&device_id=PHONE',
+  );
+});
+
+test('setVolume omits device_id when no device is given', async () => {
+  let seen = null;
+  await setVolume({
+    fetchImpl: async (url) => { seen = url; return response(204); },
+    accessToken: 't',
+    percent: 40,
+  });
+  assert.equal(seen, 'https://api.spotify.com/v1/me/player/volume?volume_percent=40');
 });
