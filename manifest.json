@@ -1,5 +1,6 @@
 {
   "manifest_version": 3,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwfCUKN8JKkL4/ZO6r5hbvlSCPmxf3SIO8SVD/cZwqwgZYEZpSqGFYJurCnFxNpOLvzO/+KqmYTLI9RtKrYf8R2cZpIpSVCb9RWto224d7RhIbpBrwDZpwHr3ZoI11YAiK4y/fYismUpKe8fY24pLu0KANkNFMtlnh+ngOdqriF5jLy+4mLVkteQu5TvWXuWnq7dJzrrBsZWH6Yulqk+Trx0absP9Q7xIVKhGtACWb3jsBzsrviubkqSAb0uCK9ivrKggaQA1AdiSTe1itNoAkP8QeinNRadU06y/b2cOcg89pEk4Hyvney0tc6Ik0z6JdoYh5vKQSS4/DrQl601TVwIDAQAB",
   "name": "Spotinyl",
   "version": "1.0.0",
   "description": "A turntable for your Spotify playback: see what's spinning, skip, pause, and set the volume.",
