@@ -3,13 +3,20 @@
 ## Building the upload
 
 ```
-npm test && npm run package
+npm test && npm run package && npm run store-assets
 ```
 
 `tools/package.js` writes `dist/spotinyl-<version>.zip` from an allowlist of the
 files the extension actually runs — manifest, icons, `src/**`, and the two
 fonts. Tests, build scripts, plans, the logo artwork and the font licence stay
 out. The build is reproducible: the same tree packs to the same bytes.
+
+`npm run store-assets` rebuilds the listing screenshot into `dist/store/`.
+The capture in `assets/` is taken at a device pixel ratio of 1.5, so it lands at
+1918x1198; the store takes 1280x800 and nothing near it, so the image is
+centre-cropped to 16:10 and box-filtered down to exactly that. `dev/store-shot.html`
+is the page the capture comes from, sized to 1280x800 and rendered from the real
+popup markup so the listing cannot drift from the product.
 
 Bump `version` in `manifest.json` before every upload. The store rejects a
 package whose version is not higher than the one already published.
@@ -30,6 +37,18 @@ It affects you. Your local build and the published build answer to different
 IDs, so your own Spotify app needs both redirect URIs registered — or you pin
 the local build to the published ID.
 
+### The published extension ID
+
+    ijehfghbdikmiodjcddcchiofghmgbmb
+
+which makes the redirect URI to register in the Spotify app:
+
+    https://ijehfghbdikmiodjcddcchiofghmgbmb.chromiumapp.org/
+
+Every store install shares this ID, so this one URI covers all of them. Keep the
+unpacked build's own URI registered alongside it, unless the local manifest is
+pinned as below.
+
 ### Pinning the local build to the published ID
 
 The order matters, because the store will not accept a first upload whose
@@ -43,7 +62,8 @@ On later uploads it accepts the field and ignores it.
    markers.
 3. Add it to `manifest.json` as a top-level `"key"`, then reload the unpacked
    extension. It now reports the published extension ID.
-4. Register `https://<published-id>.chromiumapp.org/` in your Spotify app.
+4. Register `https://ijehfghbdikmiodjcddcchiofghmgbmb.chromiumapp.org/` in
+   your Spotify app.
 
 `tools/package.js` strips `key` from the manifest it packs, so the field can
 live in the repo permanently without breaking that first upload or any upload
@@ -57,8 +77,8 @@ after it. The local file keeps it; the archive never sees it.
 | Name, 45 char max | "Spotinyl", 8 |
 | Description, 132 char max | 92 |
 | 128x128 store icon | `icons/icon-128.png` |
-| At least one screenshot, exactly 1280x800 or 640x400 | **missing** — `docs/screenshot.png` is 504x603 |
-| Privacy policy URL | written — must be shared publicly before submitting, see below |
+| At least one screenshot, exactly 1280x800 or 640x400 | `dist/store/screenshot-1280x800.png` |
+| Privacy policy URL | `docs/privacy-policy.html`, once Pages is enabled |
 | Single purpose statement | "Control Spotify playback from the toolbar" |
 
 ### Permission justifications
@@ -73,23 +93,19 @@ Each needs a sentence in the dashboard:
 
 ### Privacy policy
 
-The policy is published at
-<https://claude.ai/code/artifact/f5322f26-50b7-4986-b2dc-b51d367c12d0>. It lists
-the five `chrome.storage.local` keys by name, the two Spotify hosts the manifest
-allows, and the two scopes the auth flow requests, so it can be checked against
-the code rather than taken on trust.
+`docs/privacy-policy.html` is the policy, versioned in this repo alongside the
+code it describes, so a change in behaviour and the policy update land together.
+Served by GitHub Pages at:
 
-Two things before it can go in the dashboard field:
+    https://jbecker131.github.io/Spotinyl/privacy-policy.html
 
-1. **Fill in the contact.** The Contact clause has a marked placeholder rather
-   than an address, because publishing an email is your call to make.
-2. **Make the page public.** It is private to your account as published, and the
-   store requires a URL a reviewer can open. Share it from the page's share menu.
+Enable it once under **Settings -> Pages -> Deploy from a branch -> `main` ->
+`/docs`**. Confirm the exact URL afterwards: the subdomain lowercases the owner,
+and the repository segment keeps its own casing.
 
-A page on claude.ai is fine for getting through review, but it is tied to this
-account. Once the repo has a remote, GitHub Pages is the more durable home for
-it, and the policy should move there and be versioned with the code it
-describes.
+It lists the five `chrome.storage.local` keys by name, the two Spotify hosts the
+manifest allows, and the two scopes the auth flow requests, so it can be checked
+against the code rather than taken on trust.
 
 ### Data disclosure
 

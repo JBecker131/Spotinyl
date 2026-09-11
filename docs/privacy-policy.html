@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spotinyl Privacy Policy</title>
+    <meta name="description" content="What the Spotinyl Chrome extension stores, where it stores it, and what it sends to Spotify." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" />
+    <style>
+      :root {
+        --ground: #f7f2e8;
+        --raised: #efe7d8;
+        --ink: #241610;
+        --muted: #6b5b4a;
+        --amber: #b8751a;
+        --rule: #ddd2be;
+        --rule-strong: #c4b59c;
+
+        --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+        --cond: "IBM Plex Sans Condensed", "Helvetica Neue", Arial, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ground: #17120e;
+          --raised: #201812;
+          --ink: #ece3d4;
+          --muted: #a3907a;
+          --amber: #e8a33d;
+          --rule: #33271d;
+          --rule-strong: #4a3a2b;
+        }
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--ground);
+        color: var(--ink);
+        font-family: var(--serif);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .sheet {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding-inline: 24px;
+        padding-block: 56px 96px;
+      }
+
+      .masthead {
+        border-block-end: 2px solid var(--ink);
+        padding-block-end: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px 32px;
+      }
+
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin: 0 0 10px;
+      }
+
+      h1 {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: clamp(34px, 6vw, 50px);
+        line-height: 1.02;
+        letter-spacing: -0.015em;
+        text-wrap: balance;
+        margin: 0;
+      }
+
+      .issue {
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.7;
+        color: var(--muted);
+        text-align: right;
+        white-space: nowrap;
+      }
+      .issue b { color: var(--ink); font-weight: 500; }
+
+      .lede {
+        font-size: 19px;
+        line-height: 1.6;
+        max-width: 60ch;
+        margin: 28px 0 0;
+      }
+      .lede strong { font-weight: 600; }
+
+      .columns {
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr);
+        gap: 56px;
+        margin-block-start: 52px;
+        align-items: start;
+      }
+
+      .contents {
+        position: sticky;
+        top: 32px;
+        border-block-start: 1px solid var(--rule-strong);
+        padding-block-start: 14px;
+      }
+
+      .contents h2 {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 12px;
+      }
+
+      .contents ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 7px;
+        counter-reset: toc;
+      }
+
+      .contents a {
+        font-family: var(--cond);
+        font-size: 14px;
+        line-height: 1.35;
+        color: var(--muted);
+        text-decoration: none;
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 4px;
+      }
+      .contents a::before {
+        counter-increment: toc;
+        content: counter(toc, decimal-leading-zero);
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--amber);
+      }
+      .contents a:hover,
+      .contents a:focus-visible { color: var(--ink); }
+
+      .body { max-width: 66ch; counter-reset: clause; }
+
+      section + section { margin-block-start: 40px; }
+
+      section h2 {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 23px;
+        line-height: 1.2;
+        letter-spacing: -0.005em;
+        text-wrap: balance;
+        margin: 0 0 12px;
+        padding-block-start: 14px;
+        border-block-start: 1px solid var(--rule);
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        align-items: baseline;
+      }
+      section h2::before {
+        content: counter(clause, decimal-leading-zero);
+        counter-increment: clause;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--amber);
+      }
+
+      section p { margin: 0 0 14px; }
+      section p:last-child { margin-bottom: 0; }
+
+      .body ul {
+        margin: 0 0 14px;
+        padding-inline-start: 20px;
+        display: grid;
+        gap: 8px;
+      }
+      .body li { padding-inline-start: 2px; }
+
+      code {
+        font-family: var(--mono);
+        font-size: 0.87em;
+        color: var(--ink);
+        background: var(--raised);
+        border: 1px solid var(--rule);
+        border-radius: 3px;
+        padding: 1px 5px;
+      }
+
+      a { color: var(--ink); text-decoration-color: var(--amber); text-underline-offset: 3px; }
+      a:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 2px; }
+
+      .scroll { overflow-x: auto; margin: 0 0 16px; }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 460px;
+        font-size: 14.5px;
+      }
+
+      caption {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-align: left;
+        padding-block-end: 10px;
+      }
+
+      th, td {
+        text-align: left;
+        vertical-align: top;
+        padding: 10px 14px 10px 0;
+        border-block-end: 1px solid var(--rule);
+      }
+
+      thead th {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-block-end: 1px solid var(--rule-strong);
+        padding-block-end: 8px;
+      }
+
+      tbody th {
+        font-family: var(--mono);
+        font-weight: 400;
+        font-size: 13px;
+        color: var(--ink);
+        white-space: nowrap;
+      }
+
+      tbody td { color: var(--muted); }
+
+      .never { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+      .never li {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 8px;
+        padding-inline-start: 0;
+      }
+      .never li::before { content: "\2014"; font-family: var(--mono); color: var(--amber); }
+
+      .colophon {
+        margin-block-start: 64px;
+        padding-block-start: 18px;
+        border-block-start: 2px solid var(--ink);
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.8;
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 40px;
+        justify-content: space-between;
+      }
+
+      @media (max-width: 800px) {
+        .sheet { padding-block: 40px 72px; }
+        .columns { grid-template-columns: 1fr; gap: 36px; }
+        .contents { position: static; }
+        .contents ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .issue { text-align: left; }
+        section h2 { grid-template-columns: 32px 1fr; font-size: 21px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <header class="masthead">
+        <div>
+          <p class="eyebrow">Chrome Extension &middot; Privacy</p>
+          <h1>Spotinyl Privacy&nbsp;Policy</h1>
+        </div>
+        <p class="issue">
+          Effective <b>10 September 2026</b><br />
+          Version <b>1.0.0</b>
+        </p>
+      </header>
+
+      <p class="lede">
+        Spotinyl is a turntable for your Spotify playback. It has <strong>no server, no account,
+        and no analytics</strong>. Everything it keeps stays in your own browser profile, and the
+        only place it ever sends a request is Spotify.
+      </p>
+
+      <div class="columns">
+        <nav class="contents" aria-label="Contents">
+          <h2>Contents</h2>
+          <ol>
+            <li><a href="#stores">What Spotinyl stores</a></li>
+            <li><a href="#where">Where it is stored</a></li>
+            <li><a href="#sends">What it sends, and where</a></li>
+            <li><a href="#permissions">Spotify permissions</a></li>
+            <li><a href="#never">What it never does</a></li>
+            <li><a href="#your-app">Your own Spotify app</a></li>
+            <li><a href="#deletion">Keeping and deleting data</a></li>
+            <li><a href="#children">Children</a></li>
+            <li><a href="#changes">Changes to this policy</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ol>
+        </nav>
+
+        <main class="body">
+          <section id="stores">
+            <h2>What Spotinyl stores</h2>
+            <p>
+              Spotinyl writes five values, and only these five. They are listed here under the exact
+              keys the extension uses, so you can inspect them yourself.
+            </p>
+            <div class="scroll">
+              <table>
+                <caption>chrome.storage.local</caption>
+                <thead>
+                  <tr><th scope="col">Key</th><th scope="col">What it holds</th><th scope="col">Why</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">clientId</th>
+                    <td>The Client ID of the Spotify app you created</td>
+                    <td>Identifies your app when authorizing</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">tokens</th>
+                    <td>Your Spotify access token, refresh token, expiry and granted scope</td>
+                    <td>Keeps you signed in without re-authorizing on every use</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">lastDeviceId</th>
+                    <td>The identifier Spotify gave the device you last played on</td>
+                    <td>Lets Play wake that device after it drops off Spotify Connect</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">lastTrack</th>
+                    <td>Title, artist, album, artwork URL and length of the last track seen</td>
+                    <td>Keeps the record on the deck when a phone goes quiet</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">lastProgressMs</th>
+                    <td>How far into that track playback had reached</td>
+                    <td>Holds the tonearm where the track was paused</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              Spotinyl does not store your Spotify email address, display name, profile, playlists,
+              library or listening history.
+            </p>
+          </section>
+
+          <section id="where">
+            <h2>Where it is stored</h2>
+            <p>
+              All five values live in <code>chrome.storage.local</code>, the extension's private
+              storage area inside your browser profile on the device you are using.
+            </p>
+            <p>
+              Spotinyl deliberately does not use <code>chrome.storage.sync</code>, so none of it is
+              copied to your other devices or uploaded to your Google account. It is never
+              transmitted to the developer, because there is nowhere to transmit it to.
+            </p>
+          </section>
+
+          <section id="sends">
+            <h2>What it sends, and where</h2>
+            <p>Spotinyl can reach exactly two hosts, both of them Spotify's:</p>
+            <ul>
+              <li>
+                <code>accounts.spotify.com</code> &mdash; to authorize you and to exchange and refresh
+                tokens.
+              </li>
+              <li>
+                <code>api.spotify.com</code> &mdash; to read what is currently playing, and to send
+                play, pause, skip, volume and device-transfer commands when you press a control.
+              </li>
+            </ul>
+            <p>
+              These are the only two entries in the extension's host permissions, so the browser
+              itself prevents Spotinyl from contacting anywhere else. Your use of Spotify remains
+              subject to Spotify's own privacy policy.
+            </p>
+          </section>
+
+          <section id="permissions">
+            <h2>Spotify permissions</h2>
+            <p>Authorization requests two scopes:</p>
+            <ul>
+              <li>
+                <code>user-read-playback-state</code> &mdash; to see the current track, playback
+                position, volume and active device.
+              </li>
+              <li>
+                <code>user-modify-playback-state</code> &mdash; to act on the popup's controls.
+              </li>
+            </ul>
+            <p>
+              Nothing else is requested. Spotinyl cannot read your email, your profile, your saved
+              library, your playlists or your listening history, because it never asks Spotify for
+              permission to.
+            </p>
+          </section>
+
+          <section id="never">
+            <h2>What it never does</h2>
+            <ul class="never">
+              <li>No analytics, telemetry, crash reporting or usage tracking.</li>
+              <li>No advertising, and no advertising identifiers.</li>
+              <li>No third-party services, SDKs or CDNs &mdash; the fonts and code ship inside the extension.</li>
+              <li>No selling or transferring your data; there is no recipient and no backend.</li>
+              <li>No remotely hosted code. Everything that runs was reviewed as part of the package.</li>
+              <li>No reading or altering the pages you browse. Spotinyl has no content scripts.</li>
+            </ul>
+          </section>
+
+          <section id="your-app">
+            <h2>Your own Spotify app</h2>
+            <p>
+              Spotinyl asks you to create your own Spotify app and paste its Client ID. Your
+              authorization is therefore between you and Spotify directly, and no credential of the
+              developer's sits in the middle of it.
+            </p>
+            <p>
+              Sign-in uses the PKCE authorization flow, which needs no client secret. Spotinyl never
+              asks for one, and never sees your Spotify password &mdash; you type that on Spotify's own
+              page.
+            </p>
+          </section>
+
+          <section id="deletion">
+            <h2>Keeping and deleting data</h2>
+            <p>
+              Nothing is kept on a schedule; the five values simply persist until you remove them.
+              You are in control of all of them:
+            </p>
+            <ul>
+              <li>
+                <b>Sign out</b>, on the extension's options page, deletes your tokens. Your Client ID
+                and the last track seen are left in place so you can sign back in without setting
+                Spotinyl up again.
+              </li>
+              <li>
+                <b>Uninstalling</b> the extension removes its entire storage area, all five values
+                included.
+              </li>
+              <li>
+                <b>Revoking access</b> at
+                <a href="https://www.spotify.com/account/apps/" target="_blank" rel="noreferrer noopener">spotify.com/account/apps</a>
+                invalidates the tokens from Spotify's side, whatever this extension holds.
+              </li>
+            </ul>
+          </section>
+
+          <section id="children">
+            <h2>Children</h2>
+            <p>
+              Spotinyl is not directed at children and collects nothing from anyone. Spotify's own
+              terms govern who may hold a Spotify account.
+            </p>
+          </section>
+
+          <section id="changes">
+            <h2>Changes to this policy</h2>
+            <p>
+              If a future version of Spotinyl handles data differently, this policy will be updated
+              before that version is published, and the effective date above will change with it.
+              The policy lives in the extension's own repository, so it is versioned alongside the
+              code it describes.
+            </p>
+          </section>
+
+          <section id="contact">
+            <h2>Contact</h2>
+            <p>
+              Questions about this policy, or about what Spotinyl does with anything, can go to
+              <a href="mailto:jbecker4536@gmail.com">jbecker4536@gmail.com</a>, or be raised as an
+              issue at
+              <a href="https://github.com/JBecker131/Spotinyl">github.com/JBecker131/Spotinyl</a>.
+            </p>
+          </section>
+        </main>
+      </div>
+
+      <p class="colophon">
+        <span>Spotinyl &mdash; a turntable for your Spotify playback</span>
+        <span>No server &middot; No analytics &middot; No third parties</span>
+      </p>
+    </div>
+  </body>
+</html>
