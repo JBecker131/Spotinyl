@@ -83,29 +83,61 @@ after it. The local file keeps it; the archive never sees it.
 
 ### Permission justifications
 
-Each needs a sentence in the dashboard:
+Paste these into the Privacy tab. Each names the user-visible feature the
+permission exists for, which is what a reviewer is looking for.
 
-- **identity** — runs the Spotify OAuth flow; no other identity data is read.
-- **storage** — keeps the user's Client ID, OAuth tokens and last-seen device
-  in `chrome.storage.local` so the popup does not re-authenticate on every open.
-- **api.spotify.com** — reads playback state and sends transport commands.
-- **accounts.spotify.com** — the OAuth authorize and token endpoints.
+**identity**
 
-### Privacy policy
+> Spotinyl controls the user's own Spotify playback, which requires an OAuth
+> access token from Spotify. The identity permission is used for exactly two
+> calls: chrome.identity.launchWebAuthFlow() to open Spotify's authorization
+> page and receive the redirect back, and chrome.identity.getRedirectURL() to
+> obtain the https://<extension-id>.chromiumapp.org/ redirect URI that the flow
+> requires and that the options page shows the user during setup. No Google or
+> Chrome account identity is read: the extension never calls getAuthToken or
+> getProfileUserInfo. Without this permission Spotify sign-in cannot complete
+> and the extension cannot function.
 
-`docs/privacy-policy.html` is the policy, versioned in this repo alongside the
-code it describes, so a change in behaviour and the policy update land together.
-Served by GitHub Pages at:
+**storage**
 
-    https://jbecker131.github.io/Spotinyl/privacy-policy.html
+> Spotinyl uses chrome.storage.local to remember five values between popup
+> sessions: the Spotify Client ID the user enters during setup; the OAuth access
+> token, refresh token and expiry, so the user is not forced to re-authorize
+> every time the popup opens; and the last seen device id, track and playback
+> position, which let the popup keep showing the paused track and wake the
+> user's device after it drops off Spotify Connect. A popup is destroyed every
+> time it closes, so without persistent storage the user would have to re-enter
+> their Client ID and sign in again on every open. chrome.storage.sync is
+> deliberately not used, so nothing is copied to the user's Google account or
+> other devices.
 
-Enable it once under **Settings -> Pages -> Deploy from a branch -> `main` ->
-`/docs`**. Confirm the exact URL afterwards: the subdomain lowercases the owner,
-and the repository segment keeps its own casing.
+**Host permissions**
 
-It lists the five `chrome.storage.local` keys by name, the two Spotify hosts the
-manifest allows, and the two scopes the auth flow requests, so it can be checked
-against the code rather than taken on trust.
+> Spotinyl talks only to Spotify, and needs two hosts.
+>
+> https://accounts.spotify.com/* is the OAuth endpoint pair: /authorize starts
+> the PKCE sign-in flow, and /api/token exchanges the authorization code and
+> later refreshes the expired access token.
+>
+> https://api.spotify.com/* is the Web API the popup's controls map onto:
+> GET /me/player reads the current track, position, volume and active device;
+> PUT /me/player/play and /me/player/pause; POST /me/player/next and
+> /me/player/previous; PUT /me/player/volume; and GET /me/player/devices with
+> PUT /me/player to resume on the user's own device once it has left Spotify
+> Connect.
+>
+> Only the user-read-playback-state and user-modify-playback-state scopes are
+> requested. No other host is contacted, there is no developer backend, and no
+> analytics or third-party service is used.
+
+**Single purpose**
+
+> Spotinyl is a turntable-styled player control for Spotify. It shows the track
+> currently playing on the user's Spotify account and lets them play, pause,
+> skip and set the volume from the Chrome toolbar. That is its only function.
+
+**Remote code**: No. All JavaScript and CSS is contained in the package; the
+extension loads no script from any remote source.
 
 ### Data disclosure
 
