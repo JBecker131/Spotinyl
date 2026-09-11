@@ -3,3 +3,8 @@ node_modules/
 Thumbs.db
 *.zip
 dist/
+
+# Album art used only for store screenshots. Copyrighted, so it stays local
+# and out of a public repo; dev/store-shot.html expects it in assets/.
+assets/Sweet Boy Cover.webp
+assets/Spotinyl Cover.png

@@ -7,6 +7,7 @@
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
     "icons": "node tools/make-icons.js",
-    "package": "node tools/package.js"
+    "package": "node tools/package.js",
+    "store-assets": "node tools/make-store-assets.js"
   }
 }
